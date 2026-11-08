@@ -676,7 +676,7 @@ const api = async (path, body) => {
     body: JSON.stringify(payload)
   });
   const data = await r.json();
-  if (!r.ok) throw Error(data.error || data.message || 'Terjadi kesalahan');
+  if (!r.ok) throw Error((data.error || data.message || 'Terjadi kesalahan') + (data.debug ? ' • ' + data.debug : ''));
   return data;
 };
 
@@ -746,7 +746,7 @@ $('getCode').onclick = async () => {
     if (link) $('rlink').href = link;
     $('rtime').textContent = d.received_at
       ? 'diterima ' + new Date(d.received_at).toLocaleString('id-ID', {hour:'2-digit', minute:'2-digit', day:'numeric', month:'short'})
-      : (code ? '' : 'Status backend');
+      : (code ? '' : 'Status backend' + (d.debug ? ' • ' + d.debug : ''));
     $('res').classList.add('on');
   } catch (e) { $('aerr').textContent = e.message; }
   finally { btn.disabled = false; }
