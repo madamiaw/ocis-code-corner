@@ -634,6 +634,18 @@ label[for="u"],label[for="p"],label[for="rn"],label[for="rm"],
 .es-dec.b{right:44px;top:2px;transform:rotate(10deg)}
 .es-dec.c{left:10px;bottom:6px;transform:rotate(8deg)}
 .es-dec.d{right:8px;bottom:10px;transform:rotate(-8deg)}
+
+/* ===== V30: ukuran label ulasan, judul kosong, kertas berklip ===== */
+.card label.rl{font-family:'Gentle Remind',sans-serif!important;font-size:var(--oci-form-text-size,16px)!important;font-weight:400!important;font-style:normal!important;letter-spacing:normal!important;line-height:1.5!important;text-transform:none!important}
+#resEmpty #emptyTitle{font-family:'KiwiSoda',sans-serif!important;font-size:clamp(28px,7.6vw,40px)!important;line-height:1.2!important;font-weight:400!important;color:#bd86a3!important;margin:10px 0!important}
+.sticky-note{padding:22px 11px 14px;box-shadow:2px 4px 0 #dbc9b5,0 0 0 1px #efe2d0}
+.sticky-note:before{content:'';position:absolute;top:-17px;left:14px;width:20px;height:46px;transform:rotate(7deg);z-index:2;pointer-events:none;
+ background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 60'%3E%3Cpath d='M20 18V42a7 7 0 0 1-14 0V14a10 10 0 0 1 20 0V40' fill='none' stroke='%23c79bb0' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center/contain;
+ filter:drop-shadow(1px 2px 0 rgba(160,120,130,.3))}
+.sticky-note:nth-child(even):before{left:auto;right:14px;transform:rotate(-7deg)}
+.note-date{display:block;margin-top:8px;font-size:10.5px;opacity:.7}
+.sticky-note strong{font-size:14px}
+.sticky-note p{font-size:12.5px!important}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Emilys+Candy&family=Mali:wght@400;500;600;700&family=Mystery+Quest&family=Sour+Gummy:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Spirax&family=Ribeye+Marrow&family=Cherry+Bomb+One&family=Sour+Gummy:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -697,7 +709,7 @@ label[for="u"],label[for="p"],label[for="rn"],label[for="rm"],
           </section>
           <section class="rev" id="testimoni" aria-labelledby="rt"><span class="deco-sticker scattered rev-a" aria-hidden="true"><svg viewBox="0 0 80 80"><use href="#cute-strawberry"/></svg></span><span class="deco-sticker scattered rev-b" aria-hidden="true"><svg viewBox="0 0 80 80"><use href="#cute-bow"/></svg></span>
             <p class="t3" id="rt">Testimoni</p><h3>Cerita pengalamanmu jajan di Oci yuk!</h3>
-            <div class="card"><label for="rn">Nama</label><input id="rn" maxlength="30" placeholder="nama / inisial kamu"><label>Bintang</label><div class="stars" id="stars" role="radiogroup" aria-label="Penilaian"></div><label for="rm">Ulasan</label><textarea id="rm" maxlength="400" placeholder="pelayanan oci gimana? jujur aja supaya makin berkembang"></textarea><button class="btn" id="sendRev">Kirim Ulasan</button><p class="err" id="rerr" role="alert"></p></div><div class="list" id="list"></div>
+            <div class="card"><label for="rn" class="rl">Nama</label><input id="rn" maxlength="30" placeholder="nama / inisial kamu"><label class="rl">Bintang</label><div class="stars" id="stars" role="radiogroup" aria-label="Penilaian"></div><label for="rm" class="rl">Ulasan</label><textarea id="rm" maxlength="400" placeholder="pelayanan oci gimana? jujur aja supaya makin berkembang"></textarea><input id="rhp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px;height:0;opacity:0"><button class="btn" id="sendRev">Kirim Ulasan</button><p class="err" id="rerr" role="alert"></p></div><div class="list" id="list"></div>
           </section>
         </div>
         <aside class="sidebar"><div class="sidebox reviewboard"><span class="deco-sticker scattered board-a" aria-hidden="true"><svg viewBox="0 0 80 80"><use href="#cute-clover"/></svg></span><span class="deco-sticker scattered board-b" aria-hidden="true"><svg viewBox="0 0 80 80"><use href="#cute-flower"/></svg></span><span class="deco-sticker scattered board-c" aria-hidden="true"><svg viewBox="0 0 80 80"><use href="#cute-heart"/></svg></span><h3>Oci's Review Wall</h3><div class="sidelabel">customer notes</div><div id="reviewNotes" class="review-notes"></div><div id="reviewSummary" class="review-summary"><p class="no-reviews">Belum ada ulasan yang ditampilkan.</p></div><div class="board-flower" aria-hidden="true">✿</div></div></aside>
@@ -849,9 +861,12 @@ $('refreshStatus').onclick = () => $('getCode').click();
 setInterval(() => { if ($('res').classList.contains('on') && kItems.length) renderKodes(); }, 30000);
 const stars=$('stars');for(let i=1;i<=5;i++){const b=document.createElement('button');b.type='button';b.className='star';b.innerHTML='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 5 C36 5 39 19 42 22 C46 25 60 23 61 29 C62 34 48 39 46 43 C44 48 47 59 41 61 C36 63 33 51 29 50 C24 48 13 60 8 55 C4 51 17 39 16 34 C15 29 2 25 5 20 C8 15 22 22 26 18 C29 15 28 5 32 5Z" fill="currentColor" stroke="#bd8c9f" stroke-width="2.5" stroke-linejoin="round"/><path d="M23 30q2-3 4 0m10 0q2-3 4 0m-13 9q5 5 10 0" fill="none" stroke="#a47b88" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="37" r="3" fill="#f3a8b7"/><circle cx="44" cy="37" r="3" fill="#f3a8b7"/></svg>';b.setAttribute('aria-label',i+' bintang');b.onclick=()=>{rating=i;[...stars.children].forEach((x,j)=>x.classList.toggle('on',j<i))};stars.appendChild(b)}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const REV_URL = SUPABASE_URL + '/rest/v1/reviews';
+const REV_HEAD = {apikey: SUPABASE_KEY};
+const wallDate = iso => new Date(iso).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'});
 async function render(){
  try{
-  const response=await fetch('/api/reviews');
+  const response=await fetch(REV_URL+'?select=id,name,rating,message,created_at&order=created_at.desc&limit=60',{headers:REV_HEAD});
   if(!response.ok)throw Error('Backend testimoni belum terhubung');
   const data=await response.json();
   const a=Array.isArray(data)?data:[];
@@ -859,7 +874,7 @@ async function render(){
   const notes=$('reviewNotes'),summary=$('reviewSummary');
   notes.replaceChildren();summary.replaceChildren();
   if(!a.length){
-    const p=document.createElement('p');p.className='no-reviews';p.textContent='Belum ada ulasan.';summary.append(p);return;
+    const p=document.createElement('p');p.className='no-reviews';p.textContent='Belum ada ulasan. Jadi yang pertama kasih cerita ya!';summary.append(p);return;
   }
   const counts=[0,0,0,0,0,0];
   a.forEach((x,i)=>{
@@ -868,7 +883,8 @@ async function render(){
     const name=document.createElement('strong');name.textContent=String(x.name||'Pelanggan').slice(0,30);
     const stars=document.createElement('span');stars.className='note-stars';stars.textContent='★'.repeat(score)+'☆'.repeat(5-score);
     const message=document.createElement('p');message.textContent=String(x.message||'').slice(0,400);
-    note.append(name,stars,message);notes.append(note);
+    const when=document.createElement('small');when.className='note-date';when.textContent=x.created_at?wallDate(x.created_at):'';
+    note.append(name,stars,message,when);notes.append(note);
   });
   const total=document.createElement('h4');total.textContent='Total '+a.length+' ulasan';summary.append(total);
   for(let n=5;n>=1;n--){
@@ -882,10 +898,29 @@ async function render(){
  }catch(e){
   $('list').innerHTML='<div class="empty">Ulasan belum bisa dimuat</div>';
   $('reviewNotes').replaceChildren();
-  $('reviewSummary').innerHTML='<p class="no-reviews">Ulasan akan muncul otomatis setelah penyimpanan testimoni tersambung.</p>';
+  $('reviewSummary').innerHTML='<p class="no-reviews">Ulasan belum bisa dimuat. Coba muat ulang halaman ya.</p>';
  }
 }
-$('sendRev').onclick=async()=>{try{await api('/api/reviews',{name:$('rn').value.trim(),rating,message:$('rm').value.trim()});$('rerr').textContent='Makasih udah kasih review!';$('rn').value='';$('rm').value='';rating=0;[...stars.children].forEach(x=>x.classList.remove('on'));render()}catch(e){$('rerr').textContent=e.message}};
+let revBusy=false;
+$('sendRev').onclick=async()=>{
+  if(revBusy)return;
+  if($('rhp').value)return; // jebakan bot
+  const name=$('rn').value.trim(),message=$('rm').value.trim();
+  $('rerr').textContent='';
+  if(!name||!message||!rating){$('rerr').textContent='Isi nama, bintang, dan ulasannya dulu ya.';return}
+  let last=0;try{last=Number(localStorage.getItem('oci_rev_last')||0)}catch(e){}
+  if(Date.now()-last<60000){$('rerr').textContent='Tunggu sebentar ya sebelum kirim ulasan lagi.';return}
+  revBusy=true;$('sendRev').disabled=true;
+  try{
+    const r=await fetch(REV_URL,{method:'POST',headers:{...REV_HEAD,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify({name:name.slice(0,30),rating,message:message.slice(0,400)})});
+    if(!r.ok)throw Error('Ulasan belum bisa terkirim. Coba lagi ya.');
+    try{localStorage.setItem('oci_rev_last',String(Date.now()))}catch(e){}
+    $('rerr').textContent='Makasih udah kasih review!';
+    $('rn').value='';$('rm').value='';rating=0;[...stars.children].forEach(x=>x.classList.remove('on'));
+    render();
+  }catch(e){$('rerr').textContent=e.message}
+  finally{revBusy=false;$('sendRev').disabled=false}
+};
 render();
 
 // Tutorial dan ketentuan hanya muncul setelah tombol ditekan.
