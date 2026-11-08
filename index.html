@@ -634,7 +634,7 @@ label[for="u"],label[for="p"],label[for="rn"],label[for="rm"],
           </section>
           <section id="app" class="card hide" aria-labelledby="at"><span class="deco-sticker scattered app-a" aria-hidden="true"><svg viewBox="0 0 80 80"><use href="#cute-heart"/></svg></span><span class="deco-sticker scattered app-b" aria-hidden="true"><svg viewBox="0 0 80 80"><use href="#cute-leaf"/></svg></span>
             <div class="top"><h2 id="at">Cek kode</h2><button class="out" id="logout">keluar</button></div>
-            <label>Mau kode apa?</label><div class="seg" role="group" aria-label="Jenis kode"><button type="button" aria-pressed="true" data-t="login">Kode Masuk</button><button type="button" aria-pressed="false" data-t="household">Kode 6 Digit</button></div>
+            <label>Mau kode apa?</label><div class="seg" role="group" aria-label="Jenis kode"><button type="button" aria-pressed="true" data-t="login">Kode Masuk</button><button type="button" aria-pressed="false" data-t="household">Household</button></div>
             <label for="em">Email akun Netflix (opsional)</label><input id="em" type="email" inputmode="email" autocomplete="email" autocapitalize="none" placeholder="contoh@gmail.com">
             <button class="btn" id="getCode">Cek status</button><p class="err" id="aerr" role="alert"></p>
             <div class="result" id="res" aria-live="polite"><div class="small" id="rlabel"></div><div class="code" id="rcode"></div><div class="small" id="rtime"></div><button class="copy hide" id="copy">salin kode</button><a class="lnk hide" id="rlink" target="_blank" rel="noopener">Buka tautan verifikasi</a></div>
@@ -665,7 +665,7 @@ const api = async (path, body) => {
   if (!isLogin && path !== '/api/code') throw Error('Fitur ini belum tersambung ke backend');
   if (!isLogin && !loginToken) throw Error('Silakan login ulang');
   const endpoint = isLogin ? 'oci-login' : 'gmail-check-v2';
-  const payload = isLogin ? body : { type: type === 'login' ? 'kode_masuk' : 'kode_6_digit', email: ($('em').value || '').trim() };
+  const payload = isLogin ? body : { type: type === 'login' ? 'kode_masuk' : 'household', email: ($('em').value || '').trim() };
   const r = await fetch(`${SUPABASE_URL}/functions/v1/${endpoint}`, {
     method: 'POST',
     headers: {
@@ -738,7 +738,7 @@ $('getCode').onclick = async () => {
     const d = await api('/api/code', {});
     const code = String(d.code || d.otp || d.kode || '');
     const link = d.link || d.url || '';
-    $('rlabel').textContent = type === 'login' ? 'Kode Masuk' : 'Kode 6 Digit';
+    $('rlabel').textContent = type === 'login' ? 'Kode Masuk' : 'Household';
     $('rcode').textContent = code || d.message || 'Permintaan berhasil';
     $('rcode').classList.remove('hide');
     $('copy').classList.toggle('hide', !code);
