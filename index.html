@@ -665,7 +665,7 @@ const api = async (path, body) => {
   if (!isLogin && path !== '/api/code') throw Error('Fitur ini belum tersambung ke backend');
   if (!isLogin && !loginToken) throw Error('Silakan login ulang');
   const endpoint = isLogin ? 'oci-login' : 'gmail-check-v2';
-  const payload = isLogin ? body : { type: type === 'login' ? 'kode_masuk' : 'kode_6_digit' };
+  const payload = isLogin ? body : { type: type === 'login' ? 'kode_masuk' : 'kode_6_digit', email: ($('em').value || '').trim() };
   const r = await fetch(`${SUPABASE_URL}/functions/v1/${endpoint}`, {
     method: 'POST',
     headers: {
@@ -736,12 +736,17 @@ $('getCode').onclick = async () => {
   btn.disabled = true;
   try {
     const d = await api('/api/code', {});
+    const code = String(d.code || d.otp || d.kode || '');
+    const link = d.link || d.url || '';
     $('rlabel').textContent = type === 'login' ? 'Kode Masuk' : 'Kode 6 Digit';
-    $('rcode').textContent = d.message || 'Permintaan berhasil';
+    $('rcode').textContent = code || d.message || 'Permintaan berhasil';
     $('rcode').classList.remove('hide');
-    $('copy').classList.add('hide');
-    $('rlink').classList.add('hide');
-    $('rtime').textContent = 'Status backend • Belum membaca email Gmail';
+    $('copy').classList.toggle('hide', !code);
+    $('rlink').classList.toggle('hide', !link);
+    if (link) $('rlink').href = link;
+    $('rtime').textContent = d.received_at
+      ? 'diterima ' + new Date(d.received_at).toLocaleString('id-ID', {hour:'2-digit', minute:'2-digit', day:'numeric', month:'short'})
+      : (code ? '' : 'Status backend');
     $('res').classList.add('on');
   } catch (e) { $('aerr').textContent = e.message; }
   finally { btn.disabled = false; }
