@@ -599,12 +599,41 @@ label[for="u"],label[for="p"],label[for="rn"],label[for="rm"],
 #gate{background-image:radial-gradient(circle,#f9e0e9 1.5px,transparent 2.5px)!important;background-size:24px 24px!important}
 #gate h2{text-shadow:2px 2px 0 #fff,3px 4px 0 #f6d8e5}
 #gate .hint{background:#fff7d9;border:2px dashed #e9c7cd;border-radius:12px;padding:9px 12px}
-#refreshStatus{font-family:'Kurly Kyoots Local',cursive!important;font-size:22px!important;min-height:44px;margin-top:9px;width:100%;border:2px dashed #dca8bd;border-radius:12px;background:#fff9e9;color:#aa7a8b}
 
 /* Judul jenis hasil: Kode Masuk / Household */
 #rlabel{font-family:'KiwiSoda',sans-serif!important;font-size:clamp(29px,6vw,40px)!important;line-height:1.25!important;color:#bd86a3!important;text-shadow:1px 2px 0 #fff!important;letter-spacing:.4px!important;margin:5px 0 14px!important;position:relative}
 #rlabel::before{content:'✧ ';color:#dba8bf}
 #rlabel::after{content:' ✿';color:#dba8bf}
+
+/* ===== hasil kode (maks 5, kedaluwarsa 15 menit) ===== */
+.result{position:relative;text-align:center}
+.refresh-ico{position:absolute;top:10px;right:10px;width:38px;height:38px;padding:0;border-radius:50%;border:2px solid #dbaabd;background:#fff;color:#a57886;display:grid;place-items:center;cursor:pointer;z-index:2}
+.refresh-ico svg{width:20px;height:20px}
+.refresh-ico.spin svg{animation:rspin .8s linear infinite}
+@keyframes rspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.refresh-ico.spin svg{animation:none}}
+#resList{margin-top:6px}
+.kitem{background:#fff;border:2px solid #efc3d3;border-radius:14px;padding:12px 10px;margin:0 0 12px;text-align:center}
+.kitem.exp{background:#fbf7f7;border-color:#e6d6da}
+.khead{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:5px 8px;font-size:13px;color:#a57886}
+.kbadge{font-size:11px;font-weight:700;letter-spacing:.05em;padding:3px 9px;border-radius:99px;border:1.5px solid}
+.kitem.fresh .kbadge{background:#eef7d9;border-color:#b9d98a;color:#6f8a3d}
+.kitem.exp .kbadge{background:#fde9ef;border-color:#e2a3b8;color:#b8607d}
+.kdigits{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:11px 0 7px}
+.kdigits b{min-width:42px;height:54px;padding:0 5px;display:grid;place-items:center;border:2px solid #e5a1b9;border-radius:12px;background:#fffdfb;font:400 30px/1 var(--font-heading,'Handlee',cursive);color:#98766d}
+.kitem.exp .kdigits b{border-color:#dccdd1;color:#b4a6a9;background:linear-gradient(135deg,transparent 46%,#e6d6da 47% 53%,transparent 54%),#fffdfb}
+.knote{margin:2px 0 0;font-size:12.5px;line-height:1.5;color:#a57886}
+.kact{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.kitem .copy,.kitem .lnk{margin-top:8px}
+.empty-state{position:relative;padding:6px 8px 2px;text-align:center}
+.empty-art{display:block;width:96px;height:96px;margin:0 auto}
+.empty-state h3{font:400 clamp(24px,6vw,32px)/1.25 'KiwiSoda',sans-serif;color:#bd86a3;margin:8px 0 8px}
+.empty-state p{margin:0 auto;max-width:320px;font-size:13.5px;line-height:1.6;color:#a57886}
+.es-dec{position:absolute;width:34px;height:34px;pointer-events:none}
+.es-dec.a{left:4px;top:8px;transform:rotate(-12deg)}
+.es-dec.b{right:44px;top:2px;transform:rotate(10deg)}
+.es-dec.c{left:10px;bottom:6px;transform:rotate(8deg)}
+.es-dec.d{right:8px;bottom:10px;transform:rotate(-8deg)}
 </style>
 <link href="https://fonts.googleapis.com/css2?family=Cherry+Bomb+One&family=Emilys+Candy&family=Mali:wght@400;500;600;700&family=Mystery+Quest&family=Sour+Gummy:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Spirax&family=Ribeye+Marrow&family=Cherry+Bomb+One&family=Sour+Gummy:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -648,8 +677,22 @@ label[for="u"],label[for="p"],label[for="rn"],label[for="rm"],
             <div class="top"><h2 id="at">Cek kode</h2><button class="out" id="logout">keluar</button></div>
             <label>Mau kode apa?</label><div class="seg" role="group" aria-label="Jenis kode"><button type="button" aria-pressed="true" data-t="login">Kode Masuk</button><button type="button" aria-pressed="false" data-t="household">Household</button></div>
             <label for="em">Email akun Netflix (opsional)</label><input id="em" type="email" inputmode="email" autocomplete="email" autocapitalize="none" placeholder="contoh@gmail.com">
-            <button class="btn" id="getCode">Cek status</button><button type="button" id="refreshStatus">↻ Refresh status ✧</button><p class="err" id="aerr" role="alert"></p>
-            <div class="result" id="res" aria-live="polite"><div class="small" id="rlabel"></div><div class="code" id="rcode"></div><div class="small" id="rtime"></div><button class="copy hide" id="copy">salin kode</button><a class="lnk hide" id="rlink" target="_blank" rel="noopener">Buka tautan verifikasi</a></div>
+            <button class="btn" id="getCode">Cek status</button><p class="err" id="aerr" role="alert"></p>
+            <div class="result" id="res" aria-live="polite">
+              <button type="button" class="refresh-ico" id="refreshStatus" aria-label="Segarkan status" title="Segarkan"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
+              <div class="small" id="rlabel"></div>
+              <div id="resList"></div>
+              <div class="empty-state hide" id="resEmpty">
+                <span class="es-dec a"><svg viewBox="0 0 80 80"><use href="#cute-strawberry"/></svg></span>
+                <span class="es-dec b"><svg viewBox="0 0 80 80"><use href="#cute-clover"/></svg></span>
+                <span class="es-dec c"><svg viewBox="0 0 80 80"><use href="#cute-bow"/></svg></span>
+                <span class="es-dec d"><svg viewBox="0 0 80 80"><use href="#cute-flower"/></svg></span>
+                <svg class="empty-art" viewBox="0 0 96 96" aria-hidden="true"><circle cx="48" cy="52" r="30" fill="#fff0f6" stroke="#dca7bc" stroke-width="3"/><path d="M33 50q5 5 10 0M53 50q5 5 10 0" fill="none" stroke="#a17a6c" stroke-width="3" stroke-linecap="round"/><ellipse cx="30" cy="60" rx="5" ry="3" fill="#f7cadb"/><ellipse cx="66" cy="60" rx="5" ry="3" fill="#f7cadb"/><circle cx="48" cy="62" r="3" fill="#c78aa0"/><path d="M68 22h9l-9 9h9M80 8h6l-6 6h6" fill="none" stroke="#dca7bc" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <h3 id="emptyTitle"></h3>
+                <p>Tidak ada email kode dalam 24 jam terakhir. Pastikan Netflix baru saja mengirim email, lalu coba lagi.</p>
+                <p class="small" id="emptyDebug"></p>
+              </div>
+            </div>
             <div class="steps"><span>1 · pilih jenis</span><span>2 · isi email</span><span>3 · tunggu kode resmi</span></div>
           </section>
           <section class="rev" id="testimoni" aria-labelledby="rt"><span class="deco-sticker scattered rev-a" aria-hidden="true"><svg viewBox="0 0 80 80"><use href="#cute-strawberry"/></svg></span><span class="deco-sticker scattered rev-b" aria-hidden="true"><svg viewBox="0 0 80 80"><use href="#cute-bow"/></svg></span>
@@ -705,7 +748,7 @@ function logoutNow() {
   loginToken = '';
   $('p').value = '';
   $('res').classList.remove('on');
-  $('rcode').textContent = '';
+  $('resList').replaceChildren();
   $('aerr').textContent = '';
   showGate();
 }
@@ -739,32 +782,71 @@ document.addEventListener('visibilitychange', checkLoginExpiry);
 window.addEventListener('focus', checkLoginExpiry);
 setInterval(checkLoginExpiry, 15000);
 document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{type=b.dataset.t;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('res').classList.remove('on')});
+let kItems = [], kOffset = 0, kType = 'login', kDebug = '';
+const KODE_MS = 15 * 60 * 1000; // kode Netflix berlaku 15 menit
+const klock = iso => new Date(iso).toLocaleString('id-ID', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+const kago = ms => { const m = Math.floor(ms / 60000); if (m < 1) return 'baru saja'; if (m < 60) return m + ' menit lalu'; return Math.floor(m / 60) + ' jam lalu'; };
+function renderKodes() {
+  const list = $('resList'), empty = $('resEmpty'), name = kType === 'login' ? 'Kode Masuk' : 'Household';
+  list.replaceChildren();
+  if (!kItems.length) {
+    $('rlabel').classList.add('hide'); empty.classList.remove('hide');
+    $('emptyTitle').textContent = 'Tidak ada ' + name.toLowerCase() + ' ditemukan';
+    $('emptyDebug').textContent = kDebug;
+    return;
+  }
+  $('rlabel').classList.remove('hide'); empty.classList.add('hide');
+  $('rlabel').textContent = name;
+  const now = Date.now() + kOffset;
+  kItems.forEach(it => {
+    const age = Math.max(0, now - Date.parse(it.received_at)), expired = age >= KODE_MS;
+    const card = document.createElement('article'); card.className = 'kitem ' + (expired ? 'exp' : 'fresh');
+    const head = document.createElement('div'); head.className = 'khead';
+    const t = document.createElement('span'); t.textContent = klock(it.received_at) + ' · ' + kago(age);
+    const badge = document.createElement('span'); badge.className = 'kbadge'; badge.textContent = expired ? 'KEDALUWARSA' : 'AKTIF';
+    head.append(t, badge); card.append(head);
+    if (it.code) {
+      const dg = document.createElement('div'); dg.className = 'kdigits';
+      [...String(it.code)].forEach(c => { const b = document.createElement('b'); b.textContent = c; dg.append(b); });
+      card.append(dg);
+    }
+    const note = document.createElement('p'); note.className = 'knote';
+    note.textContent = expired ? 'Kode ini telah kedaluwarsa. Minta yang baru dari Netflix.' : 'Berlaku sekitar ' + Math.max(1, Math.ceil((KODE_MS - age) / 60000)) + ' menit lagi.';
+    card.append(note);
+    if (!expired) {
+      const act = document.createElement('div'); act.className = 'kact';
+      if (it.code) {
+        const cp = document.createElement('button'); cp.type = 'button'; cp.className = 'copy'; cp.textContent = 'salin kode';
+        cp.onclick = () => navigator.clipboard.writeText(String(it.code)).then(() => { cp.textContent = 'Tersalin!'; }).catch(() => {});
+        act.append(cp);
+      }
+      if (it.link && String(it.link).startsWith('https://www.netflix.com/')) {
+        const a = document.createElement('a'); a.className = 'lnk'; a.href = it.link; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Buka tautan verifikasi';
+        act.append(a);
+      }
+      if (act.children.length) card.append(act);
+    }
+    list.append(card);
+  });
+}
 $('getCode').onclick = async () => {
   checkLoginExpiry();
   if (!loginToken) { $('aerr').textContent = 'Silakan login lagi'; return; }
   $('aerr').textContent = '';
-  $('res').classList.remove('on');
-  const btn = $('getCode');
-  btn.disabled = true;
+  const btn = $('getCode'), rf = $('refreshStatus');
+  btn.disabled = true; rf.classList.add('spin');
   try {
     const d = await api('/api/code', {});
-    const code = String(d.code || d.otp || d.kode || '');
-    const link = d.link || d.url || '';
-    $('rlabel').textContent = type === 'login' ? 'Kode Masuk' : 'Household';
-    $('rcode').textContent = code || d.message || 'Permintaan berhasil';
-    $('rcode').classList.remove('hide');
-    $('copy').classList.toggle('hide', !code);
-    $('rlink').classList.toggle('hide', !link);
-    if (link) $('rlink').href = link;
-    $('rtime').textContent = d.received_at
-      ? 'diterima ' + new Date(d.received_at).toLocaleString('id-ID', {hour:'2-digit', minute:'2-digit', day:'numeric', month:'short'})
-      : (code ? '' : 'Status backend' + (d.debug ? ' • ' + d.debug : ''));
-    $('res').classList.add('on');
+    kType = type;
+    kOffset = d.server_time ? Date.parse(d.server_time) - Date.now() : 0;
+    kItems = Array.isArray(d.items) ? d.items : ((d.code || d.link) ? [{code: d.code || '', link: d.link || '', received_at: d.received_at || new Date().toISOString()}] : []);
+    kDebug = d.debug || '';
+    $('res').classList.add('on'); renderKodes();
   } catch (e) { $('aerr').textContent = e.message; }
-  finally { btn.disabled = false; }
+  finally { btn.disabled = false; rf.classList.remove('spin'); }
 };
-$('refreshStatus').onclick=()=>$('getCode').click();
-$('copy').onclick=()=>navigator.clipboard.writeText($('rcode').textContent).then(()=>{$('copy').textContent='Tersalin!'}).catch(()=>{});
+$('refreshStatus').onclick = () => $('getCode').click();
+setInterval(() => { if ($('res').classList.contains('on') && kItems.length) renderKodes(); }, 30000);
 const stars=$('stars');for(let i=1;i<=5;i++){const b=document.createElement('button');b.type='button';b.className='star';b.innerHTML='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 5 C36 5 39 19 42 22 C46 25 60 23 61 29 C62 34 48 39 46 43 C44 48 47 59 41 61 C36 63 33 51 29 50 C24 48 13 60 8 55 C4 51 17 39 16 34 C15 29 2 25 5 20 C8 15 22 22 26 18 C29 15 28 5 32 5Z" fill="currentColor" stroke="#bd8c9f" stroke-width="2.5" stroke-linejoin="round"/><path d="M23 30q2-3 4 0m10 0q2-3 4 0m-13 9q5 5 10 0" fill="none" stroke="#a47b88" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="37" r="3" fill="#f3a8b7"/><circle cx="44" cy="37" r="3" fill="#f3a8b7"/></svg>';b.setAttribute('aria-label',i+' bintang');b.onclick=()=>{rating=i;[...stars.children].forEach((x,j)=>x.classList.toggle('on',j<i))};stars.appendChild(b)}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function render(){
