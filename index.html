@@ -634,9 +634,9 @@ label[for="u"],label[for="p"],label[for="rn"],label[for="rm"],
           </section>
           <section id="app" class="card hide" aria-labelledby="at"><span class="deco-sticker scattered app-a" aria-hidden="true"><svg viewBox="0 0 80 80"><use href="#cute-heart"/></svg></span><span class="deco-sticker scattered app-b" aria-hidden="true"><svg viewBox="0 0 80 80"><use href="#cute-leaf"/></svg></span>
             <div class="top"><h2 id="at">Cek kode</h2><button class="out" id="logout">keluar</button></div>
-            <label>Mau kode apa?</label><div class="seg" role="group" aria-label="Jenis kode"><button type="button" aria-pressed="true" data-t="login">Kode login</button><button type="button" aria-pressed="false" data-t="household">Household</button></div>
-            <label for="em">Email akun Netflix</label><input id="em" type="email" inputmode="email" autocomplete="email" autocapitalize="none" placeholder="contoh@gmail.com">
-            <button class="btn" id="getCode">Ambil kode</button><p class="err" id="aerr" role="alert"></p>
+            <label>Mau kode apa?</label><div class="seg" role="group" aria-label="Jenis kode"><button type="button" aria-pressed="true" data-t="login">Kode Masuk</button><button type="button" aria-pressed="false" data-t="household">Kode 6 Digit</button></div>
+            <label for="em">Email akun Netflix (opsional)</label><input id="em" type="email" inputmode="email" autocomplete="email" autocapitalize="none" placeholder="contoh@gmail.com">
+            <button class="btn" id="getCode">Cek status</button><p class="err" id="aerr" role="alert"></p>
             <div class="result" id="res" aria-live="polite"><div class="small" id="rlabel"></div><div class="code" id="rcode"></div><div class="small" id="rtime"></div><button class="copy hide" id="copy">salin kode</button><a class="lnk hide" id="rlink" target="_blank" rel="noopener">Buka tautan verifikasi</a></div>
             <div class="steps"><span>1 · pilih jenis</span><span>2 · isi email</span><span>3 · tunggu kode resmi</span></div>
           </section>
@@ -659,21 +659,22 @@ let type='login',rating=0;
 const SUPABASE_URL = 'https://yfaqzpkyaznpqteuipuc.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_sx3QuVPd_Cov1QScm_zSkg_L0oFcfrm';
 
+let loginToken = '';
 const api = async (path, body) => {
-  if (path !== '/api/login') {
-    throw Error('Fitur ini belum tersambung ke backend');
-  }
-
-  const r = await fetch(`${SUPABASE_URL}/functions/v1/oci-login`, {
+  const isLogin = path === '/api/login';
+  if (!isLogin && path !== '/api/code') throw Error('Fitur ini belum tersambung ke backend');
+  if (!isLogin && !loginToken) throw Error('Silakan login ulang');
+  const endpoint = isLogin ? 'oci-login' : 'gmail-check-v2';
+  const payload = isLogin ? body : { type: type === 'login' ? 'kode_masuk' : 'kode_6_digit' };
+  const r = await fetch(`${SUPABASE_URL}/functions/v1/${endpoint}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`
+      'Authorization': `Bearer ${isLogin ? SUPABASE_KEY : loginToken}`
     },
-    body: JSON.stringify(body)
+    body: JSON.stringify(payload)
   });
-
   const data = await r.json();
   if (!r.ok) throw Error(data.error || data.message || 'Terjadi kesalahan');
   return data;
@@ -681,12 +682,70 @@ const api = async (path, body) => {
 
 const showApp=()=>{$('gate').classList.add('hide');$('app').classList.remove('hide')};
 const showGate=()=>{$('gate').classList.remove('hide');$('app').classList.add('hide')};
-// Login berlaku selama halaman terbuka; endpoint session belum tersedia.
-$('goLogin').onclick=async()=>{try{await api('/api/login',{username:$('u').value,password:$('p').value});$('gerr').textContent='';$('p').value='';showApp()}catch(e){$('gerr').textContent=e.message}};
-['u','p'].forEach(id=>$(id).addEventListener('keydown',e=>{if(e.key==='Enter')$('goLogin').click()}));
-$('logout').onclick=async()=>{showGate();$('res').classList.remove('on')};
+// Sesi halaman maksimal 1 jam sejak login berhasil.
+const LOGIN_DURATION_MS = 60 * 60 * 1000;
+let loginExpiresAt = 0;
+let logoutTimer = null;
+function logoutNow() {
+  if (logoutTimer !== null) clearTimeout(logoutTimer);
+  logoutTimer = null;
+  loginExpiresAt = 0;
+  loginToken = '';
+  $('p').value = '';
+  $('res').classList.remove('on');
+  $('rcode').textContent = '';
+  $('aerr').textContent = '';
+  showGate();
+}
+function checkLoginExpiry() {
+  if (loginExpiresAt && Date.now() >= loginExpiresAt) logoutNow();
+}
+$('goLogin').onclick = async () => {
+  try {
+    const data = await api('/api/login', {username: $('u').value, password: $('p').value});
+    if (!data.access_token) throw Error('Token login tidak diterima dari oci-login');
+    loginToken = data.access_token;
+    $('gerr').textContent = '';
+    $('p').value = '';
+    if (logoutTimer !== null) clearTimeout(logoutTimer);
+    const serverSeconds = Number(data.expires_in);
+    const duration = Number.isFinite(serverSeconds) && serverSeconds > 0
+      ? Math.min(LOGIN_DURATION_MS, serverSeconds * 1000)
+      : LOGIN_DURATION_MS;
+    loginExpiresAt = Date.now() + duration;
+    logoutTimer = setTimeout(logoutNow, duration);
+    showApp();
+  } catch (e) {
+    $('gerr').textContent = e.message;
+  }
+};
+['u','p'].forEach(id => $(id).addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('goLogin').click();
+}));
+$('logout').onclick = logoutNow;
+document.addEventListener('visibilitychange', checkLoginExpiry);
+window.addEventListener('focus', checkLoginExpiry);
+setInterval(checkLoginExpiry, 15000);
 document.querySelectorAll('.seg button').forEach(b=>b.onclick=()=>{type=b.dataset.t;document.querySelectorAll('.seg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));$('res').classList.remove('on')});
-$('getCode').onclick=async()=>{const email=$('em').value.trim();$('aerr').textContent='';$('res').classList.remove('on');if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){$('aerr').textContent='Email belum valid';return}const btn=$('getCode');btn.disabled=true;try{const d=await api('/api/code',{email,type});$('rlabel').textContent=type==='login'?'Kode login':'Verifikasi household';$('rcode').textContent=d.code||'';$('rcode').classList.toggle('hide',!d.code);$('copy').classList.toggle('hide',!d.code);$('rlink').classList.toggle('hide',!d.link);if(d.link&&/^https:\/\//.test(d.link))$('rlink').href=d.link;$('rtime').textContent=d.received_at?'Diterima '+new Date(d.received_at).toLocaleString('id-ID'):'';$('res').classList.add('on')}catch(e){$('aerr').textContent=e.message}finally{btn.disabled=false}};
+$('getCode').onclick = async () => {
+  checkLoginExpiry();
+  if (!loginToken) { $('aerr').textContent = 'Silakan login lagi'; return; }
+  $('aerr').textContent = '';
+  $('res').classList.remove('on');
+  const btn = $('getCode');
+  btn.disabled = true;
+  try {
+    const d = await api('/api/code', {});
+    $('rlabel').textContent = type === 'login' ? 'Kode Masuk' : 'Kode 6 Digit';
+    $('rcode').textContent = d.message || 'Permintaan berhasil';
+    $('rcode').classList.remove('hide');
+    $('copy').classList.add('hide');
+    $('rlink').classList.add('hide');
+    $('rtime').textContent = 'Status backend • Belum membaca email Gmail';
+    $('res').classList.add('on');
+  } catch (e) { $('aerr').textContent = e.message; }
+  finally { btn.disabled = false; }
+};
 $('copy').onclick=()=>navigator.clipboard.writeText($('rcode').textContent).then(()=>{$('copy').textContent='Tersalin!'}).catch(()=>{});
 const stars=$('stars');for(let i=1;i<=5;i++){const b=document.createElement('button');b.type='button';b.className='star';b.innerHTML='<svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 5 C36 5 39 19 42 22 C46 25 60 23 61 29 C62 34 48 39 46 43 C44 48 47 59 41 61 C36 63 33 51 29 50 C24 48 13 60 8 55 C4 51 17 39 16 34 C15 29 2 25 5 20 C8 15 22 22 26 18 C29 15 28 5 32 5Z" fill="currentColor" stroke="#bd8c9f" stroke-width="2.5" stroke-linejoin="round"/><path d="M23 30q2-3 4 0m10 0q2-3 4 0m-13 9q5 5 10 0" fill="none" stroke="#a47b88" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="37" r="3" fill="#f3a8b7"/><circle cx="44" cy="37" r="3" fill="#f3a8b7"/></svg>';b.setAttribute('aria-label',i+' bintang');b.onclick=()=>{rating=i;[...stars.children].forEach((x,j)=>x.classList.toggle('on',j<i))};stars.appendChild(b)}
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
